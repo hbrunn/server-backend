@@ -1,12 +1,15 @@
 # Copyright 2018 Therp BV <https://therp.nl>
-# Copyright 2019 initOS GmbH <https://initos.com>
+# Copyright 2019-2020 initOS GmbH <https://initos.com>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import base64
-import os
 import operator
+import os
 import time
-from odoo.http import request
 from contextlib import contextmanager
+from urllib.parse import quote_plus
+
+from odoo.http import request
+
 try:
     from radicale.storage import BaseCollection, Item, get_etag
 except ImportError:
@@ -123,9 +126,13 @@ class Collection(BaseCollection):
                 )
 
         try:
-            record = collection_model.browse(int(components[-1]))
+            record = self.collection.get_record(components)
         except ValueError:
             return None
+
+        if not record:
+            return None
+
         return Item(
             self,
             item=self.collection.to_vobject(record),
@@ -142,16 +149,16 @@ class Collection(BaseCollection):
 
         data = self.collection.from_vobject(vobject_item)
 
-        try:
-            record_id = int(components[-1])
-        except ValueError:
-            record_id = None
+        record = self.collection.get_record(components)
 
-        if not record_id:
+        if not record:
+            if self.collection.field_uuid:
+                data[self.collection.field_uuid.name] = components[-1]
+
             record = collection_model.create(data)
-            href = "%s/%s" % (href, record.id)
+            uuid = components[-1] if self.collection.field_uuid else record.id
+            href = "%s/%s" % (href, uuid)
         else:
-            record = collection_model.browse(record_id)
             record.write(data)
 
         return Item(
@@ -164,13 +171,11 @@ class Collection(BaseCollection):
     def delete(self, href):
         components = self._split_path(href)
 
-        collection_model = self.env[self.collection.model_id.model]
         if self.collection.dav_type == 'files':
             return super().delete(href)
 
         try:
-            record_id = int(components[-1])
-            collection_model.browse(record_id).unlink()
+            self.collection.get_record(components).unlink()
         except ValueError:
             pass
 
@@ -216,9 +221,7 @@ class Collection(BaseCollection):
                 ))
                 return [
                     '/' + '/'.join(
-                        # TODO: take care somewhere that we have no invalid
-                        # characters here
-                        self.path_components + [attachment.name]
+                        self.path_components + [quote_plus(attachment.name)]
                     )
                     for attachment in self.env['ir.attachment'].search([
                         ('type', '=', 'binary'),
@@ -229,15 +232,19 @@ class Collection(BaseCollection):
             elif len(self.path_components) == 2:
                 return [
                     '/' + '/'.join(
-                        # TODO: take care somewhere that we have no invalid
-                        # characters here
-                        self.path_components + [record.display_name]
+                        self.path_components +
+                        [quote_plus(record.display_name)]
                     )
                     for record in self.collection.eval()
                 ]
         if len(self.path_components) > 2:
             return []
-        return [
-            '/' + '/'.join(self.path_components + [str(record.id)])
-            for record in self.collection.eval()
-        ]
+
+        result = []
+        for record in self.collection.eval():
+            if self.collection.field_uuid:
+                uuid = record[self.collection.field_uuid.name]
+            else:
+                uuid = str(record.id)
+            result.append('/' + '/'.join(self.path_components + [uuid]))
+        return result

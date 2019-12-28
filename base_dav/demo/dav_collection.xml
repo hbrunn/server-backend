@@ -8,12 +8,17 @@
     </record>
     <record id="field_mapping_calendar_summary" model="dav.collection.field_mapping">
         <field name="name">summary</field>
-        <field name="field_id" ref="calendar.field_calendar_event_display_name" />
+        <field name="field_id" ref="calendar.field_calendar_event_name" />
         <field name="collection_id" ref="collection_calendar" />
     </record>
     <record id="field_mapping_calendar_dtstart" model="dav.collection.field_mapping">
         <field name="name">dtstart</field>
         <field name="field_id" ref="calendar.field_calendar_event_start" />
+        <field name="collection_id" ref="collection_calendar" />
+    </record>
+    <record id="field_mapping_calendar_dtend" model="dav.collection.field_mapping">
+        <field name="name">dtend</field>
+        <field name="field_id" ref="calendar.field_calendar_event_stop" />
         <field name="collection_id" ref="collection_calendar" />
     </record>
     <record id="collection_addressbook" model="dav.collection">

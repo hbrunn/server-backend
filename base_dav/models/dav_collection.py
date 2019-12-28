@@ -1,11 +1,8 @@
 # Copyright 2019 Therp BV <https://therp.nl>
-# Copyright 2019 initOS GmbH <https://initos.com>
+# Copyright 2019-2020 initOS GmbH <https://initos.com>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from datetime import date, datetime
 
-import dateutil
 import vobject
-from dateutil import tz
 from odoo import api, fields, models, tools
 
 # pylint: disable=missing-import-error
@@ -38,14 +35,13 @@ class DavCollection(models.Model):
         required=True,
         default='[]',
     )
+    field_uuid = fields.Many2one('ir.model.fields')
     field_mapping_ids = fields.One2many(
         'dav.collection.field_mapping',
         'collection_id',
         string='Field mappings',
     )
     url = fields.Char(compute='_compute_url')
-    import_code = fields.Text()
-    export_code = fields.Text()
 
     @api.multi
     def _compute_tag(self):
@@ -85,9 +81,16 @@ class DavCollection(models.Model):
         if not self:
             return self.env['unknown']
         self.ensure_one()
-        return self.env[self.model_id.model].search(
-            self._eval_domain()
-        )
+        return self.env[self.model_id.model].search(self._eval_domain())
+
+    @api.multi
+    def get_record(self, components):
+        self.ensure_one()
+        collection_model = self.env[self.model_id.model]
+
+        field_name = self.field_uuid.name or "id"
+        domain = [(field_name, '=', components[-1])]
+        return collection_model.search(domain, limit=1)
 
     @api.multi
     def from_vobject(self, item):
@@ -109,34 +112,11 @@ class DavCollection(models.Model):
             if name not in children:
                 continue
 
-            child = children[name]
+            if name in children:
+                value = mapping.from_vobject(children[name])
+                if value:
+                    result[mapping.field_id.name] = value
 
-            conversion_funcs = [
-                '_from_vobject_%s_%s' % (mapping.field_id.ttype, name),
-                '_from_vobject_%s' % mapping.field_id.ttype,
-            ]
-
-            value = child.value
-            for conversion_func in conversion_funcs:
-                if hasattr(self, conversion_func):
-                    val = getattr(self, conversion_func)(child)
-                    if val:
-                        value = val
-                        break
-
-            if value:
-                result[mapping.field_id.name] = value
-
-        if self.import_code:
-            ctx = {
-                'datetime': datetime,
-                'dateutil': dateutil,
-                'item': child,
-                'result': result,
-                'self': self,
-                'vobject': vobject,
-            }
-            tools.safe_eval(self.import_code, ctx, mode="exec", nocopy=True)
         return result
 
     @api.multi
@@ -151,87 +131,13 @@ class DavCollection(models.Model):
             result = vobject.vCard()
             vobj = result
         for mapping in self.field_mapping_ids:
-            conversion_funcs = [
-                '_to_vobject_%s_%s' % (
-                    mapping.field_id.ttype, mapping.name.lower()
-                ),
-                '_to_vobject_%s' % mapping.field_id.ttype,
-            ]
-            value = record[mapping.field_id.name]
-            for conversion_func in conversion_funcs:
-                if hasattr(self, conversion_func):
-                    value = getattr(self, conversion_func)(
-                        record, mapping.field_id.name
-                    )
-                    break
-            if not value:
-                continue
-            vobj.add(mapping.name).value = value
-
-        if self.export_code:
-            ctx = {
-                'datetime': datetime,
-                'dateutil': dateutil,
-                'record': record,
-                'self': self,
-                'result': vobj,
-                'vobject': vobject,
-            }
-            tools.safe_eval(self.export_code, ctx, mode="exec", nocopy=True)
+            value = mapping.to_vobject(record)
+            if value:
+                vobj.add(mapping.name).value = value
 
         if 'uid' not in vobj.contents:
             vobj.add('uid').value = '%s,%s' % (record._name, record.id)
         if 'rev' not in vobj.contents and 'write_date' in record._fields:
-            vobj.add('rev').value = self._to_vobject_datetime_rev(
-                record, 'write_date',
-            )
+            vobj.add('rev').value = record.write_date.\
+                replace(':', '').replace(' ', 'T').replace('.', '') + 'Z'
         return result
-
-    @api.model
-    def _from_vobject_datetime(self, item):
-        if isinstance(item.value, datetime):
-            value = item.value.astimezone(tz.UTC)
-            return value.strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
-        elif isinstance(item.value, date):
-            return item.value.strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
-        return None
-
-    @api.model
-    def _from_vobject_date(self, item):
-        if isinstance(item.value, datetime):
-            value = item.value.astimezone(tz.UTC)
-            return value.strftime(tools.DEFAULT_SERVER_DATE_FORMAT)
-        elif isinstance(item.value, date):
-            return item.value.strftime(tools.DEFAULT_SERVER_DATE_FORMAT)
-        return None
-
-    @api.model
-    def _from_vobject_binary(self, item):
-        return item.value.encode('ascii')
-
-    @api.model
-    def _from_vobject_char_n(self, item):
-        return item.family
-
-    @api.multi
-    def _to_vobject_datetime(self, record, field_name):
-        result = fields.Datetime.from_string(record[field_name])
-        return result.replace(tzinfo=tz.UTC)
-
-    @api.multi
-    def _to_vobject_datetime_rev(self, record, field_name):
-        return record[field_name] and record[field_name]\
-            .replace('-', '').replace(' ', 'T').replace(':', '') + 'Z'
-
-    @api.multi
-    def _to_vobject_date(self, record, field_name):
-        return fields.Date.from_string(record[field_name])
-
-    @api.multi
-    def _to_vobject_binary(self, record, field_name):
-        return record[field_name] and record[field_name].decode('ascii')
-
-    @api.multi
-    def _to_vobject_char_n(self, record, field_name):
-        # TODO: how are we going to handle compound types like this?
-        return vobject.vcard.Name(family=record[field_name])
