@@ -1,10 +1,13 @@
 # Copyright 2019 Therp BV <https://therp.nl>
 # Copyright 2019 initOS GmbH <https://initos.com>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from datetime import datetime, date
-from dateutil import tz
+from datetime import date, datetime
+
+import dateutil
 import vobject
+from dateutil import tz
 from odoo import api, fields, models, tools
+
 # pylint: disable=missing-import-error
 from ..controllers.main import PREFIX
 
@@ -41,6 +44,8 @@ class DavCollection(models.Model):
         string='Field mappings',
     )
     url = fields.Char(compute='_compute_url')
+    import_code = fields.Text()
+    export_code = fields.Text()
 
     @api.multi
     def _compute_tag(self):
@@ -121,6 +126,17 @@ class DavCollection(models.Model):
 
             if value:
                 result[mapping.field_id.name] = value
+
+        if self.import_code:
+            ctx = {
+                'datetime': datetime,
+                'dateutil': dateutil,
+                'item': child,
+                'result': result,
+                'self': self,
+                'vobject': vobject,
+            }
+            tools.safe_eval(self.import_code, ctx, mode="exec", nocopy=True)
         return result
 
     @api.multi
@@ -151,6 +167,18 @@ class DavCollection(models.Model):
             if not value:
                 continue
             vobj.add(mapping.name).value = value
+
+        if self.export_code:
+            ctx = {
+                'datetime': datetime,
+                'dateutil': dateutil,
+                'record': record,
+                'self': self,
+                'result': vobj,
+                'vobject': vobject,
+            }
+            tools.safe_eval(self.export_code, ctx, mode="exec", nocopy=True)
+
         if 'uid' not in vobj.contents:
             vobj.add('uid').value = '%s,%s' % (record._name, record.id)
         if 'rev' not in vobj.contents and 'write_date' in record._fields:
