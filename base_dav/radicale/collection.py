@@ -125,10 +125,7 @@ class Collection(BaseCollection):
                     ),
                 )
 
-        try:
-            record = self.collection.get_record(components)
-        except ValueError:
-            return None
+        record = self.collection.get_record(components)
 
         if not record:
             return None
@@ -174,10 +171,7 @@ class Collection(BaseCollection):
         if self.collection.dav_type == 'files':
             return super().delete(href)
 
-        try:
-            self.collection.get_record(components).unlink()
-        except ValueError:
-            pass
+        self.collection.get_record(components).unlink()
 
     def _odoo_to_http_datetime(self, value):
         return time.strftime(
