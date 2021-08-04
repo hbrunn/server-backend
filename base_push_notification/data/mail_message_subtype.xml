@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2021 Hunki Enterprises BV
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+<record id="subtype_notification_content" model="mail.message.subtype">
+    <field name="name">Push notification content</field>
+    <field name="res_model">push.notification.config</field>
+    <field name="internal" eval="True" />
+    <field name="default" eval="True" />
+</record>
+
+<record id="subtype_notification_result" model="mail.message.subtype">
+    <field name="name">Push notification result</field>
+    <field name="res_model">push.notification.config</field>
+    <field name="internal" eval="True" />
+    <field name="default" eval="True" />
+</record>
+
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2021 Hunki Enterprises BV
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+<menuitem id="menu_push_notification_root" name="Push Notifications" />
+
+<menuitem
+        id="menu_push_notification_config"
+        sequence="100"
+        parent="menu_push_notification_root"
+        action="action_push_notification_config"
+    />
+
+</odoo>

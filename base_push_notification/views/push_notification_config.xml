@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2021 Hunki Enterprises BV
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+<record id="view_push_notification_config_form" model="ir.ui.view">
+    <field name="model">push.notification.config</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <div class="oe_button_box" name="button_box">
+                    <button
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-list"
+                            name="base_push_notification.action_push_notification_registration"
+                            context="{'default_push_config_id': active_id}"
+                            domain="{'search_default_push_config_id': active_id}"
+                        >
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="registration_count" />
+                            </span>
+                            <span class="o_stat_text">Registrations</span>
+                        </div>
+                    </button>
+                </div>
+                <div class="oe_title">
+                    <h1><field name="name" placeholder="App name" /></h1>
+                </div>
+                <group>
+                    <group name="use_flags">
+                        <field name="use_apns" />
+                        <field name="use_fcm" />
+                    </group>
+                    <group name="misc_flags">
+                        <field name="debug" />
+                        <field name="default_topic" placeholder="Default topic" />
+                    </group>
+                </group>
+
+                <group
+                        name="apns"
+                        attrs="{'invisible': [('use_apns', '=', False)]}"
+                        string="APNs"
+                    >
+                    <field
+                            name="apns_key"
+                            attrs="{'required': [('use_apns', '=', True)]}"
+                        />
+                    <field
+                            name="apns_key_id"
+                            attrs="{'required': [('use_apns', '=', True)]}"
+                        />
+                    <field
+                            name="apns_team_id"
+                            attrs="{'required': [('use_apns', '=', True)]}"
+                        />
+                </group>
+
+                <group
+                        name="fcm"
+                        attrs="{'invisible': [('use_fcm', '=', False)]}"
+                        string="FCM"
+                    >
+                    <field
+                            name="fcm_key"
+                            attrs="{'required': [('use_fcm', '=', True)]}"
+                        />
+                </group>
+             </sheet>
+             <div class="oe_chatter">
+                 <field name="message_follower_ids" />
+                 <field name="message_ids" />
+             </div>
+        </form>
+    </field>
+</record>
+
+<record id="view_push_notification_config_tree" model="ir.ui.view">
+    <field name="model">push.notification.config</field>
+    <field name="arch" type="xml">
+        <tree>
+            <field name="name" />
+            <field name="use_apns" />
+            <field name="use_fcm" />
+        </tree>
+    </field>
+</record>
+
+<record id="view_push_notification_config_search" model="ir.ui.view">
+    <field name="model">push.notification.config</field>
+    <field name="arch" type="xml">
+        <search>
+            <field name="name" />
+            <field name="use_apns" />
+            <field name="use_fcm" />
+        </search>
+    </field>
+</record>
+
+<record id="action_push_notification_config" model="ir.actions.act_window">
+    <field name="name">Configurations</field>
+    <field name="type">ir.actions.act_window</field>
+    <field name="res_model">push.notification.config</field>
+    <field name="view_mode">tree,form</field>
+</record>
+
+</odoo>
