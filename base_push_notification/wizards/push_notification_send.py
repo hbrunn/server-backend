@@ -16,8 +16,12 @@ class PushNotificationSend(models.TransientModel):
         active_model = self.env.context.get("active_model")
         registrations = self.env["push.notification.registration"]
         if active_model == "push.notification.registration":
-            # TODO: support active_domain
-            registrations = registrations.browse(self.env.context.get("active_ids", []))
+            if self.env.context.get("active_domain"):
+                registrations = registrations.search(self.env.context["active_domain"])
+            else:
+                registrations = registrations.browse(
+                    self.env.context.get("active_ids", [])
+                )
         elif active_model == "push.notification.configuration":
             # TODO: implement
             raise NotImplementedError()

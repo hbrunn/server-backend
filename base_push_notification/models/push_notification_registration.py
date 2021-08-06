@@ -79,7 +79,7 @@ class PushNotificationRegistration(models.Model):
                 registrations.mapped(
                     lambda x: APNs2Notification(payload=payload, token=x.identifier)
                 ),
-                topic=kwargs.get("topic", config.default_topic or None),
+                topic=kwargs.get("topic", config.apns_topic or None),
             )
             # TODO: do something more sensible here
             config.message_post(
@@ -91,7 +91,7 @@ class PushNotificationRegistration(models.Model):
         """ Send a notification to devices in self, which are of type fcm """
         for config, registrations in self.grouped("push_config_id"):
             client = config.sudo()._get_client("fcm")
-            topic = kwargs.get("topic", config.default_topic or None)
+            topic = kwargs.get("topic", config.fcm_topic or None)
             if topic:
                 result = client.notify_topic_subscribers(
                     topic_name=topic,

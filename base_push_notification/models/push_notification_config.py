@@ -31,13 +31,14 @@ class PushNotificationConfig(models.Model):
             for this in self
         ],
     )
-    default_topic = fields.Char("Topic")
     use_fcm = fields.Boolean("Enable FCM")
     fcm_key = fields.Char("API key")
+    fcm_topic = fields.Char("Topic")
     use_apns = fields.Boolean("Enable APNs")
     apns_key = fields.Text("Key")
     apns_key_id = fields.Char("Key ID")
     apns_team_id = fields.Char("Team ID")
+    apns_topic = fields.Char("Topic")
 
     def _get_client(self, client_type):
         """ Return a client object for the request type of notification """

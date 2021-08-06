@@ -14,8 +14,7 @@
                             class="oe_stat_button"
                             icon="fa-list"
                             name="base_push_notification.action_push_notification_registration"
-                            context="{'default_push_config_id': active_id}"
-                            domain="{'search_default_push_config_id': active_id}"
+                            context="{'default_push_config_id': active_id, 'search_default_push_config_id': active_id}"
                         >
                         <div class="o_form_field o_stat_info">
                             <span class="o_stat_value">
@@ -35,7 +34,6 @@
                     </group>
                     <group name="misc_flags">
                         <field name="debug" />
-                        <field name="default_topic" placeholder="Default topic" />
                     </group>
                 </group>
 
@@ -56,6 +54,10 @@
                             name="apns_team_id"
                             attrs="{'required': [('use_apns', '=', True)]}"
                         />
+                    <field
+                            name="apns_topic"
+                            attrs="{'required': [('use_apns', '=', True)]}"
+                        />
                 </group>
 
                 <group
@@ -67,6 +69,7 @@
                             name="fcm_key"
                             attrs="{'required': [('use_fcm', '=', True)]}"
                         />
+                    <field name="fcm_topic" />
                 </group>
              </sheet>
              <div class="oe_chatter">

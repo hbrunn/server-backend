@@ -21,6 +21,7 @@
             <field name="registration_type" />
             <field name="identifier" />
             <field name="partner_id" />
+            <field name="push_config_id" />
         </search>
     </field>
 </record>
