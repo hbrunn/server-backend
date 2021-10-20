@@ -19,6 +19,7 @@ class PushNotificationRegistration(models.Model):
         [
             ("fcm", "FCM"),
             ("apns", "APNs"),
+            ("generic", "Generic"),
         ],
         required=True,
     )
@@ -30,7 +31,8 @@ class PushNotificationRegistration(models.Model):
     partner_id = fields.Many2one("res.partner", string="Partner")
 
     @api.constrains(
-        "registration_type", "push_config_id.use_apns", "push_config_id.use_fcm"
+        "registration_type", "push_config_id.use_apns", "push_config_id.use_fcm",
+        "push_config_id.use_generic",
     )
     def _check_registration_type(self):
         # TODO: this is probably too slow via the ORM
@@ -111,3 +113,9 @@ class PushNotificationRegistration(models.Model):
             )
             if topic:
                 break
+
+    def _push_notification_generic(self, body, title=None, **kwargs):
+        """ Send a notification to devices in self, which are of type generic """
+        for config, registrations in self.grouped("push_config_id"):
+            client = config.sudo()._get_client("generic")
+            # TODO: _get_client should return a function that adds the server key, vapid keys

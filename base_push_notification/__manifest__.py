@@ -25,4 +25,7 @@
         "views/menu.xml",
         "data/mail_message_subtype.xml",
     ],
+    "demo": [
+        "demo/templates.xml",
+    ]
 }

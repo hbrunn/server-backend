@@ -39,6 +39,8 @@ class PushNotificationConfig(models.Model):
     apns_key_id = fields.Char("Key ID")
     apns_team_id = fields.Char("Team ID")
     apns_topic = fields.Char("Topic")
+    use_generic = fields.Boolean("Enable generic push API")
+    generic_key = fields.Char("Application server key")
 
     def _get_client(self, client_type):
         """ Return a client object for the request type of notification """
@@ -57,5 +59,7 @@ class PushNotificationConfig(models.Model):
             )
         elif client_type == "fcm":
             return FCMNotification(api_key=self.fcm_key)
+        elif client_type == "generic":
+            raise NotImplementedError()
         else:
             raise NotImplementedError()
