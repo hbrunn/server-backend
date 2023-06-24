@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 class FetchmailServer(models.Model):
     _inherit = "fetchmail.server"
 
-    type = fields.Selection(selection_add=[("local_mailbox", "Local mailbox")])
+    server_type = fields.Selection(selection_add=[("local_mailbox", "Local mailbox")])
     mailbox_type = fields.Selection([("maildir", "Maildir")], default="maildir")
     mailbox_path = fields.Char()
     mailbox_delete_processed = fields.Boolean("Delete processed mails from mailbox")
