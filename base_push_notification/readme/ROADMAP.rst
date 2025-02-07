@@ -1,0 +1,2 @@
+- support APNs
+- support browser push + JS helper to register for push messages

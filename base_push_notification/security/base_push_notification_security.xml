@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2021 Hunki Enterprises BV
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+<record id="category" model="ir.module.category">
+    <field name="name">Push notifications</field>
+</record>
+
+<record id="group_user" model="res.groups">
+    <field name="name">User</field>
+    <field name="category_id" ref="category" />
+    <field name="comment">Can send notifications</field>
+</record>
+
+<record id="group_manager" model="res.groups">
+    <field name="name">Manager</field>
+    <field name="category_id" ref="category" />
+    <field name="implied_ids" eval="[(4, ref('group_user'))]" />
+    <field name="comment">Can access keys</field>
+    <field
+            name="users"
+            eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"
+        />
+</record>
+
+</odoo>
