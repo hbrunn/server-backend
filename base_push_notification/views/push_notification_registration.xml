@@ -8,6 +8,7 @@
     <field name="arch" type="xml">
         <tree editable="top">
             <field name="registration_type" />
+            <field name="push_config_id" />
             <field name="identifier" />
             <field name="partner_id" />
         </tree>

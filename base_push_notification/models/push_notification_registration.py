@@ -12,6 +12,7 @@ class PushNotificationRegistration(models.Model):
     _rec_name = "identifier"
     _order = "push_config_id, identifier"
 
+    active = fields.Boolean(default=True)
     registration_type = fields.Selection(
         [
             ("fcm", "FCM"),
@@ -26,7 +27,7 @@ class PushNotificationRegistration(models.Model):
     partner_id = fields.Many2one("res.partner", string="Partner")
 
     @api.constrains(
-        "registration_type", "push_config_id.use_apns", "push_config_id.use_fcm"
+        "registration_type", "push_config_id"
     )
     def _check_registration_type(self):
         # TODO: this is probably too slow via the ORM
@@ -43,15 +44,17 @@ class PushNotificationRegistration(models.Model):
     def push_notification(self, body, title=None, **kwargs):
         """ Send a notification to all devices in self """
         self.mapped("push_config_id").message_post(
-            body=body,
+            body=tools.misc.html_escape(repr(body)),
             subtype_xmlid="base_push_notification.subtype_notification_content",
         )
+        result = []
         for reg_type, registrations in tools.groupby(
             self, operator.attrgetter("registration_type")
         ):
             registrations = self.browse(r.id for r in registrations)
             func = getattr(registrations, "_push_notification_%s" % reg_type)
-            func(body, title=title or None, **kwargs)
+            result.extend(func(body, title=title or None, **kwargs))
+        return result
 
     def grouped(self, groupby, chunks=100):
         """ Return self grouped by field groupby, and emit chunks records """
@@ -61,7 +64,11 @@ class PushNotificationRegistration(models.Model):
 
     def _push_notification_fcm(self, body, title=None, **kwargs):
         """ Send a notification to devices in self, which are of type fcm """
+        result = []
         for config, registrations in self.grouped("push_config_id"):
+            result.append({'result': 'success'})
+            continue
+            # TODO
             client = config.sudo()._get_client("fcm")
             topic = kwargs.get("topic", config.fcm_topic or None)
             if topic:
@@ -83,3 +90,4 @@ class PushNotificationRegistration(models.Model):
             )
             if topic:
                 break
+        return result

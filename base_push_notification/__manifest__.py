@@ -22,6 +22,7 @@
         "wizards/push_notification_send.xml",
         "views/push_notification_registration.xml",
         "views/push_notification_config.xml",
+        "views/res_partner.xml",
         "views/menu.xml",
         "data/mail_message_subtype.xml",
     ],

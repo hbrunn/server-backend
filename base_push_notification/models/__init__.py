@@ -2,3 +2,4 @@
 
 from . import push_notification_config
 from . import push_notification_registration
+from . import res_partner

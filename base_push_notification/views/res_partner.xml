@@ -1,0 +1,11 @@
+<odoo>
+    <record id="view_partner_form" model="ir.ui.view">
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <div class="oe_button_box" position="inside">
+                <button class="oe_stat_button" type="object" name="action_push_notification_registrations" icon="fa-comment-o" groups="base_push_notification.group_user" string="Push registrations" />
+            </div>
+        </field>
+    </record>
+</odoo>

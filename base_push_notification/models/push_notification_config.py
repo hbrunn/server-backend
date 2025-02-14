@@ -12,6 +12,7 @@ class PushNotificationConfig(models.Model):
     _order = "name"
 
     name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
     debug = fields.Boolean()
     registration_ids = fields.One2many(
         "push.notification.registration",
@@ -37,6 +38,7 @@ class PushNotificationConfig(models.Model):
         """ Return a client object for the request type of notification """
         self.ensure_one()
         if client_type == "fcm":
-            return FCMNotification(api_key=self.fcm_key)
+            # TODO
+            return FCMNotification()
         else:
             raise NotImplementedError()
