@@ -35,7 +35,7 @@ class PushNotificationConfig(models.Model):
     fcm_topic = fields.Char("Topic")
 
     def _get_client(self, client_type):
-        """ Return a client object for the request type of notification """
+        """Return a client object for the request type of notification"""
         self.ensure_one()
         if client_type == "fcm":
             # TODO

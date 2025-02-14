@@ -4,7 +4,11 @@
 <odoo>
 
     <menuitem
-        id="menu_push_notification_root" name="Push Notifications" parent="base.menu_custom" sequence="800" />
+        id="menu_push_notification_root"
+        name="Push Notifications"
+        parent="base.menu_custom"
+        sequence="800"
+    />
 
 <menuitem
         id="menu_push_notification_config"

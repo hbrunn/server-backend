@@ -26,23 +26,21 @@ class PushNotificationRegistration(models.Model):
     identifier = fields.Char(required=True)
     partner_id = fields.Many2one("res.partner", string="Partner")
 
-    @api.constrains(
-        "registration_type", "push_config_id"
-    )
+    @api.constrains("registration_type", "push_config_id")
     def _check_registration_type(self):
         # TODO: this is probably too slow via the ORM
         for this in self:
             if not this.push_config_id["use_%s" % this.registration_type]:
                 raise exceptions.ValidationError(
                     _(
-                        "Configuration of registration %s does not support type %s",
-                        this.identifier,
-                        this.registration_type,
+                        "Configuration of registration %(identifier)s "
+                        "does not support type %(registration_type)s",
                     )
+                    % this
                 )
 
     def push_notification(self, body, title=None, **kwargs):
-        """ Send a notification to all devices in self """
+        """Send a notification to all devices in self"""
         self.mapped("push_config_id").message_post(
             body=tools.misc.html_escape(repr(body)),
             subtype_xmlid="base_push_notification.subtype_notification_content",
@@ -57,16 +55,16 @@ class PushNotificationRegistration(models.Model):
         return result
 
     def grouped(self, groupby, chunks=100):
-        """ Return self grouped by field groupby, and emit chunks records """
+        """Return self grouped by field groupby, and emit chunks records"""
         for grouped, group in tools.groupby(self, operator.attrgetter(groupby)):
             for chunk in tools.split_every(chunks, group):
                 yield grouped, self.browse(r.id for r in chunk)
 
     def _push_notification_fcm(self, body, title=None, **kwargs):
-        """ Send a notification to devices in self, which are of type fcm """
+        """Send a notification to devices in self, which are of type fcm"""
         result = []
         for config, registrations in self.grouped("push_config_id"):
-            result.append({'result': 'success'})
+            result.append({"result": "success"})
             continue
             # TODO
             client = config.sudo()._get_client("fcm")

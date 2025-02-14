@@ -6,7 +6,7 @@ from odoo.tests.common import SingleTransactionCase
 
 
 class AbstractSomethingTester(models.Model):
-    """ It provides a real model object to test the abstract with """
+    """It provides a real model object to test the abstract with"""
 
     _name = "abstract.something.tester"
     _description = "Abstract Something Tester"
